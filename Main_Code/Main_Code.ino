@@ -7,18 +7,11 @@ DallasTemperature sensors(&oneWire);
 // Setup a oneWire instance to communicate with any OneWire devices
 
 
+//GSM
 #include <SoftwareSerial.h>
 SoftwareSerial sim808(3,4);   //3 to TX , 4 to RX
 
 //pH
-/*#include "DFRobot_PH.h"
-#include <EEPROM.h>*/
-
-/*#define PH_PIN A3  
-float voltage,phValue,temperature;
-DFRobot_PH ph;*/
-
-
 #define SensorPin A3            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate
 #define LED 13
@@ -45,10 +38,6 @@ int pHArrayIndex=0;
 //Single point calibration needs to be filled CAL1_V and CAL1_T
 #define CAL1_V (1490) //mv
 #define CAL1_T (25)   //℃
-//Two-point calibration needs to be filled CAL2_V and CAL2_T
-//CAL1 High temperature point, CAL2 Low temperature point
-#define CAL2_V (1300) //mv
-#define CAL2_T (15)   //℃
 
 const uint16_t DO_Table[41] = {
     14460, 14220, 13820, 13440, 13090, 12740, 12420, 12110, 11810, 11530,
@@ -71,30 +60,16 @@ int16_t readDO(uint16_t raw, uint8_t temperature)
 #endif
 }
 
-
-
-/*
-#define SensorPin A3            //pH meter Analog output to Arduino Analog Input 0
-#define Offset 0.00            //deviation compensate
-#define LED 13
-#define samplingInterval 20
-#define printInterval 800
-#define ArrayLenth  40    //times of collection
-int pHArray[ArrayLenth];   //Store the average value of the sensor feedback
-int pHArrayIndex=0;
-*/
 //OLED
 #include "U8glib.h"
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE|U8G_I2C_OPT_DEV_0);  // I2C / TWI 
 
-
-
-int Powerkey = 9;
+int Powerkey = 9; //To turn on the GSM Module
 
 String  teks;
 String kirimData;
-String reading="{\"location_id\": 238, \"fill_percent\": 90}";
 
+//Init Sensors' Variable
 int valDO;
 float valPH;
 float valTEMPR;
@@ -102,13 +77,14 @@ float valTEMPR;
 
 void setup() {
   Serial.begin(9600);
+  
   //init oled
   initOLED();
+  
   //init gsm
   pinMode(Powerkey, OUTPUT);   // initialize the digital pin as an output.  
   power();                     //power on the sim808 or power down the sim808
-  
-  //delay(3000);
+
   //init sensors
   sensors.begin();
   //ph.begin();
@@ -122,19 +98,13 @@ void setup() {
   Serial.println("Connecting");
   sendData("AT",2000);
   sendData("AT",2000);
-  
   sendData("AT+CGATT=1",2000);
-  
   sendData("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"",2000);
-  
   sendData("AT+SAPBR=3,1,\"APN\",\"internet\"",2000);
-
   sendData("AT+SAPBR=2,1",2000);
-
   sendData("AT+SAPBR=1,1",2000);
-
   Serial.println("Connection Established");
-    //Serial.println(response);
+    
 }
 
 
@@ -152,7 +122,6 @@ void sendData (String command , const int timeout){
   }
 
   Serial.println(response);
-  //return response;
 }
 
 
@@ -174,6 +143,7 @@ void loop() {
   valDO = nilaiDO();
   valPH = nilaiPH();
   valTEMPR = nilaiTempr(); 
+  
   //live update on oled
   exOLED();
 
@@ -181,26 +151,15 @@ void loop() {
   Serial.println("Sending data....");
   kirimData = String("{") + String("\"val_do\":") + valDO + String(",\"val_ph\":") + valPH + String(",\"val_tempr\":") + valTEMPR + String('}');
   sendData("AT+HTTPINIT",2000);
-  
   sendData("AT+HTTPPARA=\"CID\",1",2000);
-  
   sendData("AT+HTTPPARA=\"URL\",\"https://smartpond-dashboard.firebaseio.com/smartpond-dashboard.json\"",2000);
-  //sendData("AT+HTTPPARA=\"URL\",\"https://my-awesome-kp.firebaseio.com/smartpond.json\"",2000);
   sendData("AT+HTTPSSL=1",2000);
-  
   sendData("AT+HTTPPARA=\"CONTENT\",\"application/json\"",2000);
-
   sendData("AT+HTTPDATA="+String(kirimData.length())+",10000",5000);
-
   sendData(kirimData, 5000);
-  
   sendData("AT+HTTPACTION=1",2000);
-  
   sendData("AT+HTTPREAD=0,20",2000);
-  
   sendData("AT+HTTPTERM",2000);
-
-  
   Serial.println("Data sent!");
   Serial.println(kirimData);
   delay(15000);

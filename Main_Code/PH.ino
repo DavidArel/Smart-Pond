@@ -5,20 +5,7 @@ void initPH(){
   //inisialisasi pin yg dipakai
 }
 float nilaiPH(){ 
-    /*static unsigned long timepoint = millis();
-    if(millis()-timepoint>1000U)  //time interval: 1s
-    {
-      timepoint = millis();
-      voltage = analogRead(PH_PIN)/1024.0*5000;  // read the voltage
-      //temperature = readTemperature();  // read your temperature sensor to execute temperature compensation
-      phValue = ph.readPH(voltage,temperature);  // convert voltage to pH with temperature compensation
-      //Serial.print("temperature:");
-      //Serial.print(temperature,1);
-      //Serial.print("^C  pH:");
-      //Serial.println(phValue,2);
-    }
-    ph.calibration(voltage,temperature);  // calibration process by Serail CMD
-    */
+    
   static unsigned long samplingTime = millis();
   static unsigned long printTime = millis();
   static float phValue,voltage;
