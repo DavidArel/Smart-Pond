@@ -1,5 +1,8 @@
 # Smart-Pond
 Monitoring aquaculture system using IoT
+Dashboard for this project:
+https://github.com/Farraseldy/SPDashboard/
+https://farraseldy.github.io/SPDashboard/
 
 ## Components
  - Mega 2560 Pro
